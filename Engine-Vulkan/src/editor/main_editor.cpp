@@ -1,14 +1,14 @@
 #include <QApplication>
-#include <QMainWindow>
+
+#include "MainWindow.h"
 
 int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
 
-    QMainWindow mainWindow;
-    mainWindow.setWindowTitle("Sparkle Editor");
-    mainWindow.resize(1280, 720);
-    mainWindow.show();
+    MainWindow window;
+
+    window.show();
 
     return app.exec();
 }

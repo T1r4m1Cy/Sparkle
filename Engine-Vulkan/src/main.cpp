@@ -24,6 +24,8 @@ Create and destroy a Vulkan surface on an SDL window.
 
 // Tell SDL not to mess with main()
 #define SDL_MAIN_HANDLED
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_vulkan.h>
 
 #include <iostream>
 #include <filesystem>
@@ -41,6 +43,31 @@ int main()
     std::cout.flush();
 
     Engine engine;
+
+    window_init(engine.window, 1280, 720);
+
+    unsigned count;
+    SDL_Vulkan_GetInstanceExtensions(engine.window.handle, &count, nullptr);
+    engine.requiredExtensions.resize(count);
+    SDL_Vulkan_GetInstanceExtensions(engine.window.handle, &count, 
+        engine.requiredExtensions.data());
+
+    engine.createSurface = [&](vk::Instance instance) {
+        VkSurfaceKHR surface;
+        SDL_Vulkan_CreateSurface(engine.window.handle, 
+            static_cast<VkInstance>(instance), &surface);
+        return vk::SurfaceKHR(surface);
+    };
+
+    engine.getWindowSize = [&]() -> vk::Extent2D {
+        int w, h;
+        SDL_Vulkan_GetDrawableSize(engine.window.handle, &w, &h);
+        return { static_cast<uint32_t>(w), static_cast<uint32_t>(h) };
+    };
+
+    engine.getFramebuffer = [&](uint32_t imageIndex, uint32_t frame) {
+        return engine.vulkan.swapchain.swapchainFramebuffers[imageIndex];
+    };
 
     if (engine_init(engine, 1280, 720) != 0) return 1;
 

@@ -21,9 +21,12 @@
 
 #include "VulkanContext.h"
 
-static int vulkan_init_instance(VulkanContext& ctx, SDL_Window* window);
+static int vulkan_init_instance(VulkanContext& ctx, 
+    const std::function<vk::Extent2D()>& getWindowSize,
+    std::vector<const char*> requiredExtensions);
 
-static int vulkan_init_surface(VulkanContext& ctx, SDL_Window* window);
+static int vulkan_init_surface(VulkanContext& ctx, 
+    const std::function<vk::SurfaceKHR(vk::Instance)>& createSurface);
 
 static int vulkan_init_physical_device(VulkanContext& ctx);
 static int rate_physical_device(vk::PhysicalDevice device, vk::SurfaceKHR surface);
@@ -68,19 +71,24 @@ static int vulkan_alloc_lighting_descriptor_sets(VulkanContext& ctx);
 
 void update_uniform_buffer(VulkanContext& ctx, uint32_t currentImage, UniformBufferObject ubo);
 void update_light_buffer(VulkanContext& ctx, uint32_t currentImage, LightUBO ubo);
-void record_command_buffer(VulkanContext& ctx, AssetManager& assets, uint32_t imageIndex, uint32_t frame,
-    const std::vector<DrawCall>& drawCalls);
+void record_command_buffer(VulkanContext& ctx, AssetManager& assets,
+    uint32_t imageIndex, uint32_t frame,
+    const std::vector<DrawCall>& drawCalls,
+    vk::Framebuffer framebuffer);
 
 
 
-int vulkan_init(VulkanContext& ctx, SDL_Window* window)
+int vulkan_init(VulkanContext& ctx, 
+    std::vector<const char*> requiredExtensions,
+    const std::function<vk::SurfaceKHR(vk::Instance)>& createSurface,
+    const std::function<vk::Extent2D()>& getWindowSize)
 {
-    if (vulkan_init_instance(ctx, window) != 0) return 1;
-    if (vulkan_init_surface(ctx, window) != 0) return 1;
+    if (vulkan_init_instance(ctx, getWindowSize, requiredExtensions) != 0) return 1;
+    if (vulkan_init_surface(ctx, createSurface) != 0) return 1;
     if (vulkan_init_physical_device(ctx) != 0) return 1;
     if (vulkan_init_device(ctx) != 0) return 1;
 	if (vulkan_init_offscreen_sampler(ctx) != 0) return 1;
-    if (vulkan_init_swapchain(ctx, window) != 0) return 1;
+    if (vulkan_init_swapchain(ctx, getWindowSize) != 0) return 1;
     if (vulkan_init_image_views(ctx) != 0) return 1;
     if (vulkan_init_render_pass(ctx) != 0) return 1;
     if (vulkan_init_descriptor_set_layout(ctx) != 0) return 1;
@@ -110,18 +118,12 @@ int vulkan_init(VulkanContext& ctx, SDL_Window* window)
     return 0;
 }
 
-static int vulkan_init_instance(VulkanContext& ctx, SDL_Window* window)
+static int vulkan_init_instance(VulkanContext& ctx, 
+    const std::function<vk::Extent2D()>& getWindowSize,
+    std::vector<const char*> requiredExtensions)
 {
-    unsigned extension_count;
-    if (!SDL_Vulkan_GetInstanceExtensions(window, &extension_count, NULL)) {
-        std::cout << "Could not get the number of required instance extensions from SDL." << std::endl;
-        return 1;
-    }
-    std::vector<const char*> extensions(extension_count);
-    if (!SDL_Vulkan_GetInstanceExtensions(window, &extension_count, extensions.data())) {
-        std::cout << "Could not get the names of required instance extensions from SDL." << std::endl;
-        return 1;
-    }
+    unsigned extension_count = requiredExtensions.size();
+    std::vector<const char*> extensions = requiredExtensions;
 
     // Use validation layers if this is a debug build
     std::vector<const char*> layers;
@@ -162,16 +164,10 @@ static int vulkan_init_instance(VulkanContext& ctx, SDL_Window* window)
     return 0;
 }
 
-static int vulkan_init_surface(VulkanContext& ctx, SDL_Window* window)
+static int vulkan_init_surface(VulkanContext& ctx, 
+    const std::function<vk::SurfaceKHR(vk::Instance)>& createSurface)
 {
-    // Create a Vulkan surface for rendering
-    VkSurfaceKHR c_surface;
-    if (!SDL_Vulkan_CreateSurface(window, static_cast<VkInstance>(ctx.instance), &c_surface)) {
-        std::cout << "Could not create a Vulkan surface." << std::endl;
-        return 1;
-    }
-    vk::SurfaceKHR surface(c_surface);
-    ctx.surface = surface;
+    ctx.surface = createSurface(ctx.instance);
 
     return 0;
 }
@@ -398,7 +394,8 @@ static int vulkan_init_command_buffer(VulkanContext& ctx)
 
 void record_command_buffer(VulkanContext& ctx, AssetManager& assets,
     uint32_t imageIndex, uint32_t frame,
-    const std::vector<DrawCall>& drawCalls)
+    const std::vector<DrawCall>& drawCalls,
+    vk::Framebuffer framebuffer)
 {
     vk::CommandBufferBeginInfo beginInfo = vk::CommandBufferBeginInfo();
 
@@ -413,7 +410,7 @@ void record_command_buffer(VulkanContext& ctx, AssetManager& assets,
 
     vk::RenderPassBeginInfo renderPassInfo = vk::RenderPassBeginInfo()
         .setRenderPass(ctx.pipeline.renderPass)
-        .setFramebuffer(ctx.swapchain.swapchainFramebuffers[imageIndex])
+        .setFramebuffer(framebuffer)
         .setRenderArea({ {0,0}, ctx.swapchain.swapchainExtent })
         .setClearValueCount(static_cast<uint32_t>(clearValues.size()))
         .setPClearValues(clearValues.data());
@@ -717,7 +714,9 @@ void update_light_buffer(VulkanContext& ctx, uint32_t currentImage, LightUBO ubo
     memcpy(ctx.lightBuffersMapped[currentImage], &ubo, sizeof(ubo));
 }
 
-void draw_frame(VulkanContext& ctx, AssetManager& assets, SDL_Window* window, FramePacket framePacket)
+void draw_frame(VulkanContext& ctx, AssetManager& assets, 
+    const std::function<vk::Extent2D()>& getWindowSize, FramePacket framePacket,
+    std::function<vk::Framebuffer(uint32_t imageIndex, uint32_t frame)> getFramebuffer)
 {
     uint32_t frame = ctx.currentFrame;
     uint32_t semIdx = ctx.acquireSemaphoreIndex;
@@ -738,7 +737,7 @@ void draw_frame(VulkanContext& ctx, AssetManager& assets, SDL_Window* window, Fr
         &imageIndex);
 
     if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR) {
-        vulkan_recreate_swapchain(ctx, window);
+        vulkan_recreate_swapchain(ctx, getWindowSize);
         return;
     }
     else if (result != vk::Result::eSuccess) {
@@ -753,7 +752,9 @@ void draw_frame(VulkanContext& ctx, AssetManager& assets, SDL_Window* window, Fr
 
     update_uniform_buffer(ctx, frame, framePacket.ubo);
 
-    record_command_buffer(ctx, assets, imageIndex, frame, framePacket.drawCalls);
+    vk::Framebuffer framebuffer = getFramebuffer(imageIndex, frame);
+    record_command_buffer(ctx, assets, imageIndex, frame, 
+        framePacket.drawCalls, framebuffer);
 
     vk::Semaphore waitSemaphores[] = { ctx.imageAvailableSemaphores[semIdx] };
     vk::PipelineStageFlags waitStages[] = { vk::PipelineStageFlagBits::eColorAttachmentOutput };

@@ -11,8 +11,8 @@ static constexpr float CAMERA_SPEED = 3.0f;
 
 int engine_init(Engine& e, int width, int height)
 {
-    if (window_init(e.window, width, height) == 1) return 1;
-    if (vulkan_init(e.vulkan, e.window.handle) == 1) return 1;
+    if (vulkan_init(e.vulkan, 
+        e.requiredExtensions, e.createSurface, e.getWindowSize) != 0) return 1;
 
     e.world = world_create();
 
@@ -117,14 +117,32 @@ int engine_init(Engine& e, int width, int height)
     return 0;
 }
 
+void engine_tick(Engine& e) 
+{
+    auto now = std::chrono::steady_clock::now();
+    e.deltaTime = std::chrono::duration<float>(now - e.lastFrameTime).count();
+    e.lastFrameTime = now;
+
+    //Add all ECS systems here
+}
+
+void engine_render(Engine& e)
+{
+    float aspectRatio = e.vulkan.swapchain.swapchainExtent.width / 
+        (float)e.vulkan.swapchain.swapchainExtent.height;
+
+    draw_frame(
+        e.vulkan, e.assets, e.getWindowSize, 
+        update_renderer(e.world, e.assets, aspectRatio), 
+        e.getFramebuffer
+    );
+}
+
 void engine_run(Engine& e, bool& stillRunning)
 {
     static bool editorMode = true;
 
-    //Delta time
-    auto now = std::chrono::steady_clock::now();
-    e.deltaTime = std::chrono::duration<float>(now - e.lastFrameTime).count();
-    e.lastFrameTime = now;
+    engine_tick(e);
 
     SDL_Event event;
     float xoffset = 0.0f, yoffset = 0.0f;
@@ -181,19 +199,12 @@ void engine_run(Engine& e, bool& stillRunning)
         }
     }
 
-	float aspectRatio = e.vulkan.swapchain.swapchainExtent.width / 
-        (float)e.vulkan.swapchain.swapchainExtent.height;
-
-    draw_frame(e.vulkan, e.assets, e.window.handle, 
-        update_renderer(e.world, e.assets, aspectRatio));
-
-    //SDL_Delay(10);
+    engine_render(e);
 }
 
 void engine_shutdown(Engine& e)
 {
     e.vulkan.device.waitIdle();
-
     e.assets.assets_shutdown(e.vulkan);
 	vulkan_shutdown(e.vulkan);
 	window_shutdown(e.window);

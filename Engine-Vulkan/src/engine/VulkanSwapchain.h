@@ -27,7 +27,8 @@ struct VulkanSwapchain {
 	std::vector<vk::CommandBuffer> commandBuffers;
 };
 
-int vulkan_init_swapchain(VulkanContext& ctx, SDL_Window* window);
+int vulkan_init_swapchain(VulkanContext& ctx, 
+    const std::function<vk::Extent2D()>& getWindowSize);
 int vulkan_init_image_views(VulkanContext& ctx);
 int vulkan_init_depth_resources(VulkanContext& ctx);
 
@@ -35,7 +36,8 @@ int vulkan_init_framebuffers(VulkanContext& ctx);
 int vulkan_init_offscreen_framebuffers(VulkanContext& ctx);
 
 int vulkan_cleanup_swapchain(VulkanContext& ctx);
-int vulkan_recreate_swapchain(VulkanContext& ctx, SDL_Window* window);
+int vulkan_recreate_swapchain(VulkanContext& ctx, 
+    const std::function<vk::Extent2D()>& getWindowSize);
 
 vk::Format find_depth_format(VulkanContext& ctx);
 bool has_stencil_component(vk::Format format);

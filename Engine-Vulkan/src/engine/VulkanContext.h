@@ -64,7 +64,10 @@ struct VulkanContext {
 	vk::Sampler offscreenSampler;
 };
 
-int vulkan_init(VulkanContext& ctx, SDL_Window* window);
+int vulkan_init(VulkanContext& ctx, 
+    std::vector<const char*> requiredExtensions,
+    const std::function<vk::SurfaceKHR(vk::Instance)>& createSurface,
+    const std::function<vk::Extent2D()>& getWindowSize);
 void vulkan_shutdown(VulkanContext& ctx);
 
 int vulkan_recreate_g_buffer(VulkanContext& ctx);
@@ -74,4 +77,6 @@ int vulkan_update_lighting_descriptor_sets(VulkanContext& ctx);
 
 struct AssetManager;
 
-void draw_frame(VulkanContext& ctx, AssetManager& assets, SDL_Window* window, FramePacket framePacket);
+void draw_frame(VulkanContext& ctx, AssetManager& assets, 
+    const std::function<vk::Extent2D()>& getWindowSize, FramePacket framePacket,
+    std::function<vk::Framebuffer(uint32_t imageIndex, uint32_t frame)> getFramebuffer);

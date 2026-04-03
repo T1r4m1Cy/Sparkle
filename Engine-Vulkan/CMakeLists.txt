@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
 project(Sparkle)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
@@ -20,26 +22,37 @@ file(GLOB ENGINE_SOURCES
     src/engine/*.h
 )
 
-# ─── Game ──────────────────────────────────────────────────────────
-add_executable(Sparkle
-    src/main.cpp
+file(GLOB EDITOR_SOURCES
+    src/editor/*.cpp
+    src/editor/*.h
+)
+
+# ─── Engine Library ────────────────────────────────────────────────
+add_library(EngineLib STATIC
     ${ENGINE_SOURCES}
 )
 
-target_include_directories(Sparkle PRIVATE
+target_include_directories(EngineLib PUBLIC
     src/engine
     ${Vulkan_INCLUDE_DIRS}
     ${VULKAN_SDK}/Include
     ${VULKAN_SDK}/Include/SDL2
 )
 
-target_link_directories(Sparkle PRIVATE ${VULKAN_SDK}/Lib)
+target_link_directories(EngineLib PUBLIC ${VULKAN_SDK}/Lib)
 
-target_link_libraries(Sparkle PRIVATE
+target_link_libraries(EngineLib PUBLIC
     Vulkan::Vulkan
     SDL2
     SDL2main
 )
+
+# ─── Game ──────────────────────────────────────────────────────────
+add_executable(Sparkle
+    src/main.cpp
+)
+
+target_link_libraries(Sparkle PRIVATE EngineLib)
 
 add_custom_command(TARGET Sparkle POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -49,13 +62,19 @@ add_custom_command(TARGET Sparkle POST_BUILD
 
 # ─── Editor ────────────────────────────────────────────────────────
 add_executable(SparkleEditor
-    src/editor/main_editor.cpp
+    ${EDITOR_SOURCES}
+)
+
+target_include_directories(SparkleEditor PRIVATE
+    src/editor
 )
 
 target_link_libraries(SparkleEditor PRIVATE
+    EngineLib
     Qt6::Core
     Qt6::Widgets
     Qt6::Gui
+    Vulkan::Vulkan
 )
 
 # ─── Шейдеры ───────────────────────────────────────────────────────
