@@ -23,7 +23,6 @@ struct VulkanSwapchain {
 	vk::Format swapchainFormat;
 	vk::Extent2D swapchainExtent;
 	std::vector<vk::Framebuffer> swapchainFramebuffers;
-	std::vector<vk::Framebuffer> imguiFramebuffers;
 	vk::CommandPool commandPool;
 	std::vector<vk::CommandBuffer> commandBuffers;
 };
@@ -33,7 +32,6 @@ int vulkan_init_image_views(VulkanContext& ctx);
 int vulkan_init_depth_resources(VulkanContext& ctx);
 
 int vulkan_init_framebuffers(VulkanContext& ctx);
-int vulkan_init_imgui_framebuffers(VulkanContext& ctx);
 int vulkan_init_offscreen_framebuffers(VulkanContext& ctx);
 
 int vulkan_cleanup_swapchain(VulkanContext& ctx);

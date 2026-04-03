@@ -17,7 +17,6 @@
 #include <optional>
 #include <algorithm>
 
-#include "ImGuiLayer.h"
 #include "AssetManager.h"
 
 #include "VulkanContext.h"
@@ -414,7 +413,7 @@ void record_command_buffer(VulkanContext& ctx, AssetManager& assets,
 
     vk::RenderPassBeginInfo renderPassInfo = vk::RenderPassBeginInfo()
         .setRenderPass(ctx.pipeline.renderPass)
-        .setFramebuffer(ctx.offscreenBuffers[frame].framebuffer)
+        .setFramebuffer(ctx.swapchain.swapchainFramebuffers[imageIndex])
         .setRenderArea({ {0,0}, ctx.swapchain.swapchainExtent })
         .setClearValueCount(static_cast<uint32_t>(clearValues.size()))
         .setPClearValues(clearValues.data());
@@ -490,8 +489,6 @@ void record_command_buffer(VulkanContext& ctx, AssetManager& assets,
     ctx.swapchain.commandBuffers[frame].draw(6, 1, 0, 0);
 
     ctx.swapchain.commandBuffers[frame].endRenderPass();
-
-	imgui_render(ctx, imageIndex, frame);
 
     ctx.swapchain.commandBuffers[frame].end();
 }
@@ -742,7 +739,6 @@ void draw_frame(VulkanContext& ctx, AssetManager& assets, SDL_Window* window, Fr
 
     if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR) {
         vulkan_recreate_swapchain(ctx, window);
-        ImGui::EndFrame();
         return;
     }
     else if (result != vk::Result::eSuccess) {

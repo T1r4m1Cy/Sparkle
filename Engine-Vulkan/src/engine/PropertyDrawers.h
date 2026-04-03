@@ -7,11 +7,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
-#include "libraries/imgui/imgui.h"
-
 #include "AssetHandle.h"
 
-inline void draw_field(const std::string& label, float* data)
+/*inline void draw_field(const std::string& label, float* data)
 {
 	ImGui::DragFloat(label.c_str(), data, 0.1f);
 }
@@ -70,4 +68,4 @@ inline void draw_field(const std::string& label, TextureHandle* data)
 inline void draw_field_color(const std::string& label, glm::vec3* data)
 {
 	ImGui::ColorEdit3(label.c_str(), &data->x);
-}
+}*/

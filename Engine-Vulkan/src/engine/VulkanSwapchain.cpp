@@ -3,8 +3,6 @@
 
 #include "VulkanContext.h"
 
-#include "ImGuiLayer.h"
-
 #include "VulkanSwapchain.h"
 
 int vulkan_init_swapchain(VulkanContext& ctx, SDL_Window* window)
@@ -164,25 +162,6 @@ int vulkan_init_framebuffers(VulkanContext& ctx)
     return 0;
 }
 
-int vulkan_init_imgui_framebuffers(VulkanContext& ctx)
-{
-    ctx.swapchain.imguiFramebuffers.resize(ctx.swapchain.imageViews.size());
-    
-    for (size_t i = 0; i < ctx.swapchain.imageViews.size(); i++) {
-        vk::FramebufferCreateInfo framebufferInfo = vk::FramebufferCreateInfo()
-            .setRenderPass(ctx.pipeline.imguiRenderPass)
-            .setAttachmentCount(1)
-            .setPAttachments(&ctx.swapchain.imageViews[i])
-            .setWidth(ctx.swapchain.swapchainExtent.width)
-            .setHeight(ctx.swapchain.swapchainExtent.height)
-            .setLayers(1);
-
-        ctx.swapchain.imguiFramebuffers[i] = ctx.device.createFramebuffer(framebufferInfo);
-    }
-
-    return 0;
-}
-
 int vulkan_init_offscreen_framebuffers(VulkanContext& ctx)
 {
     for (size_t i = 0; i < ctx.offscreenBuffers.size(); i++) {
@@ -218,11 +197,6 @@ int vulkan_cleanup_swapchain(VulkanContext& ctx)
 		ctx.device.freeMemory(buffer.imageMemory);
 	}
 
-    for (auto& frameBuffer : ctx.swapchain.imguiFramebuffers) {
-        ctx.device.destroyFramebuffer(frameBuffer);
-    }
-    ctx.swapchain.imguiFramebuffers.clear();
-
     for (auto& frameBuffer : ctx.swapchain.swapchainFramebuffers) {
         ctx.device.destroyFramebuffer(frameBuffer);
     }
@@ -253,10 +227,8 @@ int vulkan_recreate_swapchain(VulkanContext& ctx, SDL_Window* window)
     if (vulkan_recreate_g_buffer(ctx) != 0) return 1;
 	if (vulkan_init_offscreen_buffers(ctx) != 0) return 1;
 	if (vulkan_init_offscreen_framebuffers(ctx) != 0) return 1;
-    vulkan_init_offscreen_imgui_descriptors(ctx);
 	if (vulkan_update_lighting_descriptor_sets(ctx) != 0) return 1;
     if (vulkan_init_framebuffers(ctx) != 0) return 1;
-	if (vulkan_init_imgui_framebuffers(ctx) != 0) return 1;
 
     std::cout << "Swapchain recreated!" << std::endl;
 

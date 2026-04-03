@@ -382,7 +382,7 @@ int vulkan_init_render_pass(VulkanContext& ctx)
         .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
         .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
         .setInitialLayout(vk::ImageLayout::eUndefined)
-        .setFinalLayout(vk::ImageLayout::eShaderReadOnlyOptimal);
+        .setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
 
     vk::AttachmentReference colorAttachmentRef = vk::AttachmentReference()
         .setAttachment(3)
@@ -482,46 +482,6 @@ int vulkan_init_render_pass(VulkanContext& ctx)
     ctx.pipeline.renderPass = ctx.device.createRenderPass(renderPassInfo);
 
     return 0;
-}
-
-int vulkan_init_imgui_render_pass(VulkanContext& ctx)
-{
-    vk::AttachmentDescription colorAttachment = vk::AttachmentDescription()
-        .setFormat(ctx.swapchain.swapchainFormat)
-        .setSamples(vk::SampleCountFlagBits::e1)
-        .setLoadOp(vk::AttachmentLoadOp::eClear)
-        .setStoreOp(vk::AttachmentStoreOp::eStore)
-        .setInitialLayout(vk::ImageLayout::eUndefined)
-        .setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
-
-    vk::AttachmentReference colorAttachmentRef = vk::AttachmentReference()
-        .setAttachment(0)
-        .setLayout(vk::ImageLayout::eColorAttachmentOptimal);
-
-    vk::SubpassDescription subpass = vk::SubpassDescription()
-        .setPipelineBindPoint(vk::PipelineBindPoint::eGraphics)
-        .setColorAttachmentCount(1)
-        .setPColorAttachments(&colorAttachmentRef);
-
-    vk::SubpassDependency dependency = vk::SubpassDependency()
-        .setSrcSubpass(vk::SubpassExternal)
-        .setDstSubpass(0)
-        .setSrcStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput)
-        .setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput)
-        .setSrcAccessMask(vk::AccessFlagBits::eColorAttachmentWrite)
-		.setDstAccessMask(vk::AccessFlagBits::eColorAttachmentWrite);
-
-    vk::RenderPassCreateInfo renderPassInfo = vk::RenderPassCreateInfo()
-        .setAttachmentCount(1)
-        .setPAttachments(&colorAttachment)
-        .setSubpassCount(1)
-        .setPSubpasses(&subpass)
-        .setDependencyCount(1)
-        .setPDependencies(&dependency);
-
-    ctx.pipeline.imguiRenderPass = ctx.device.createRenderPass(renderPassInfo);
-
-	return 0;
 }
 
 int vulkan_init_descriptor_set_layout(VulkanContext& ctx)

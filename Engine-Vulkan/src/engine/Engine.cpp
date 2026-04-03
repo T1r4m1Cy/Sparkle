@@ -2,7 +2,6 @@
 
 #include "Renderer.h"
 #include "CameraSystem.h"
-#include "ImGuiLayer.h"
 #include "ComponentRegistry.h"
 
 #include "Engine.h"
@@ -115,19 +114,12 @@ int engine_init(Engine& e, int width, int height)
 
     debug_world(e.world);
 
-    vulkan_init_imgui_render_pass(e.vulkan);
-	vulkan_init_imgui_framebuffers(e.vulkan);
-
-	imgui_init(e.vulkan, e.window.handle);
-    vulkan_init_offscreen_imgui_descriptors(e.vulkan);
-
     return 0;
 }
 
 void engine_run(Engine& e, bool& stillRunning)
 {
     static bool editorMode = true;
-    static bool viewportHovered = false;
 
     //Delta time
     auto now = std::chrono::steady_clock::now();
@@ -138,8 +130,6 @@ void engine_run(Engine& e, bool& stillRunning)
     float xoffset = 0.0f, yoffset = 0.0f;
     while (SDL_PollEvent(&event))
     {
-        ImGui_ImplSDL2_ProcessEvent(&event);
-
         if (event.type == SDL_QUIT) {
             stillRunning = false;
         }
@@ -152,8 +142,7 @@ void engine_run(Engine& e, bool& stillRunning)
         }
 
         if (event.type == SDL_MOUSEBUTTONDOWN && 
-            event.button.button == SDL_BUTTON_LEFT &&
-            viewportHovered) {
+            event.button.button == SDL_BUTTON_LEFT) {
             editorMode = false;
 		}
 
@@ -192,162 +181,8 @@ void engine_run(Engine& e, bool& stillRunning)
         }
     }
 
-	imgui_new_frame();
-
-	ImGuiWindowFlags dockspaceFlags = 
-        ImGuiWindowFlags_NoTitleBar |
-        ImGuiWindowFlags_NoCollapse |
-        ImGuiWindowFlags_NoResize |
-        ImGuiWindowFlags_NoMove |
-        ImGuiWindowFlags_NoBringToFrontOnFocus |
-		ImGuiWindowFlags_NoNavFocus |
-		ImGuiWindowFlags_NoBackground;
-
-	ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(viewport->Pos);
-	ImGui::SetNextWindowSize(viewport->Size);
-	ImGui::SetNextWindowViewport(viewport->ID);
-
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-
-	ImGui::Begin("DockSpace", nullptr, dockspaceFlags);
-	ImGui::PopStyleVar(3);
-
-	ImGuiID dockspaceID = ImGui::GetID("MainDockSpace");
-    ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f),
-        ImGuiDockNodeFlags_None);
-
-	static bool firstTime = true;
-    if (firstTime) {
-		firstTime = false;
-
-        ImGui::DockBuilderRemoveNode(dockspaceID);
-		ImGui::DockBuilderAddNode(dockspaceID, 
-            ImGuiDockNodeFlags_DockSpace);
-		ImGui::DockBuilderSetNodeSize(dockspaceID, ImGui::GetMainViewport()->Size);
-
-        ImGuiID dockIDLeft, dockIDCenter, dockIDRight;
-        ImGui::DockBuilderSplitNode(
-            dockspaceID, ImGuiDir_Left, 0.2f, &dockIDLeft, &dockIDCenter);
-        ImGui::DockBuilderSplitNode(
-			dockIDCenter, ImGuiDir_Right, 0.25f, &dockIDRight, &dockIDCenter);
-
-		ImGui::DockBuilderDockWindow("World Inspector", dockIDLeft);
-		ImGui::DockBuilderDockWindow("Properties", dockIDRight);
-		ImGui::DockBuilderDockWindow("Viewport", dockIDCenter);
-
-		ImGui::DockBuilderFinish(dockspaceID);
-    }
-
-    ImGui::End();
-
-	ImGui::Begin("Viewport");
-
-	ImVec2 viewportSize = ImGui::GetContentRegionAvail();
-
-	ImVec2 windowPos = ImGui::GetWindowPos();
-	ImVec2 contentMin = ImGui::GetWindowContentRegionMin();
-	ImVec2 contentMax = ImGui::GetWindowContentRegionMax();
-	ImVec2 mousePos = ImGui::GetMousePos();
-
-	viewportHovered = 
-        mousePos.x >= windowPos.x + contentMin.x &&
-        mousePos.x <= windowPos.x + contentMax.x &&
-        mousePos.y >= windowPos.y + contentMin.y &&
-		mousePos.y <= windowPos.y + contentMax.y;
-
-    ImGui::Image(
-        e.vulkan.offscreenBuffers[e.vulkan.currentFrame].imguiDescriptorSet,
-        viewportSize
-	);
-
-    ImGui::End();
-
-    static Entity selectedEntity = NULL_ENTITY;
-
-	ImGui::Begin("World Inspector");
-
-	std::string addLabel = "Add Entity";
-    if (ImGui::Button(addLabel.c_str())) {
-		Entity newEntity = world_create_entity(e.world);
-		NameComponent nameComp{ "Entity " + std::to_string(newEntity) };
-		world_add_component<NameComponent>(e.world, newEntity, nameComp);
-    }
-	ImGui::Text("Entities: %d", static_cast<int>(e.world.entityIndex.size()));
-	ImGui::Separator();
-
-    for (auto& [entity, record] : e.world.entityIndex) {
-		NameComponent* name = world_get_component<NameComponent>(e.world, entity);
-		std::string label = name ? name->name : "Entity " + std::to_string(entity);
-
-		bool isSelected = (selectedEntity == entity);
-        if (ImGui::Selectable(label.c_str(), isSelected)) {
-            selectedEntity = entity;
-        }
-	}
-
-    ImGui::End();
-
-    ImGui::Begin("Properties");
-    
-    if (selectedEntity != NULL_ENTITY) {
-        auto& reg = get_component_registry();
-
-		auto& rec = e.world.entityIndex[selectedEntity];
-        Archetype* arch = e.world.archetypes[rec.archetypeID].get();
-
-        for (ComponentID id : arch->componentIDs) {
-            auto it = reg.components.find(id);
-            if (it == reg.components.end()) {
-                continue;
-			}
-
-            ComponentInfo& info = it->second;
-
-			int colIdx = archetype_column_index(*arch, id);
-			void* compPtr = column_get(arch->columns[colIdx], rec.row);
-
-            if (ImGui::CollapsingHeader(info.name.c_str(),
-                ImGuiTreeNodeFlags_DefaultOpen)) {
-                for (auto& field : info.fields) {
-                    field.drawImGui(compPtr);
-				}
-            }
-
-			std::string removeLabel = "Remove##" + info.name;
-            if (ImGui::Button(removeLabel.c_str())) {
-                info.remove(e.world, selectedEntity);
-                break;
-            }
-		}
-
-        ImGui::Separator();
-
-        if (ImGui::Button("Add Component", ImVec2(-1, 0))) {
-            ImGui::OpenPopup("AddComponentPopup");
-        }
-
-        if (ImGui::BeginPopup("AddComponentPopup")) {
-            for (auto& [id, info] : reg.components) {
-                if (archetype_column_index(*arch, id) == -1) {
-                    if (ImGui::MenuItem(info.name.c_str())) {
-                        info.add(e.world, selectedEntity);
-						auto& rec2 = e.world.entityIndex[selectedEntity];
-						arch = e.world.archetypes[rec2.archetypeID].get();
-						ImGui::CloseCurrentPopup();
-                        break;
-                    }
-				}
-            }
-            ImGui::EndPopup();
-        }
-    }
-
-    ImGui::End();
-
-	float aspectRatio = viewportSize.x / viewportSize.y;
+	float aspectRatio = e.vulkan.swapchain.swapchainExtent.width / 
+        (float)e.vulkan.swapchain.swapchainExtent.height;
 
     draw_frame(e.vulkan, e.assets, e.window.handle, 
         update_renderer(e.world, e.assets, aspectRatio));
@@ -359,7 +194,6 @@ void engine_shutdown(Engine& e)
 {
     e.vulkan.device.waitIdle();
 
-	imgui_shutdown(e.vulkan);
     e.assets.assets_shutdown(e.vulkan);
 	vulkan_shutdown(e.vulkan);
 	window_shutdown(e.window);

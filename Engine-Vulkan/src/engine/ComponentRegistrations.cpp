@@ -1,7 +1,7 @@
 #include "ComponentRegistry.h"
 #include "Components.h"
 
-REGISTER_COMPONENT(NameComponent, "Name",
+/*REGISTER_COMPONENT(NameComponent, "Name",
 	FIELD(std::string, name, "Name")
 )
 
@@ -27,4 +27,4 @@ REGISTER_COMPONENT(CameraComponent, "Camera",
 	FIELD(float, nearPlane, "Near Plane")
 	FIELD(float, farPlane, "Far Plane")
 	FIELD(bool, controlledByPlayer, "Controlled By Player")
-)
+)*/

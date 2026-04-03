@@ -6,7 +6,6 @@ struct VulkanContext;
 
 struct VulkanPipeline {
 	vk::RenderPass renderPass;
-	vk::RenderPass imguiRenderPass;
 
 	vk::DescriptorSetLayout descriptorSetLayout;
 	vk::PipelineLayout pipelineLayout;
@@ -21,7 +20,6 @@ int vulkan_init_graphics_pipeline(VulkanContext& ctx);
 int vulkan_init_lighting_pipeline(VulkanContext& ctx);
 
 int vulkan_init_render_pass(VulkanContext& ctx);
-int vulkan_init_imgui_render_pass(VulkanContext& ctx);
 
 int vulkan_init_descriptor_set_layout(VulkanContext& ctx);
 int vulkan_init_lighting_descriptor_set_layout(VulkanContext& ctx);
