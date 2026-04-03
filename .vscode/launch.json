@@ -8,6 +8,14 @@
             "program": "${workspaceFolder}/build/Debug/Sparkle.exe",
             "cwd": "${workspaceFolder}/Engine-Vulkan",
             "stopAtEntry": false
+        },
+        {
+            "name": "Sparkle Editor",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Debug/SparkleEditor.exe",
+            "cwd": "${workspaceFolder}/Engine-Vulkan",
+            "stopAtEntry": false
         }
     ]
 }
