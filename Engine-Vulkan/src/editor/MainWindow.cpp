@@ -59,7 +59,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     m_renderTimer = new QTimer(this);
     connect(m_renderTimer, &QTimer::timeout, this, &MainWindow::on_render_frame);
-    m_renderTimer->start(0);
+    m_renderTimer->start(16);
 }
 
 MainWindow::~MainWindow()
