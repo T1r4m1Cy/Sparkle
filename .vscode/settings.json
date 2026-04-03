@@ -1,0 +1,4 @@
+{
+    "cmake.sourceDirectory": "${workspaceFolder}/Engine-Vulkan",
+    "cmake.buildDirectory": "${workspaceFolder}/build"
+}

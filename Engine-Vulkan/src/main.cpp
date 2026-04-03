@@ -25,12 +25,20 @@ Create and destroy a Vulkan surface on an SDL window.
 // Tell SDL not to mess with main()
 #define SDL_MAIN_HANDLED
 
+#include <iostream>
+#include <filesystem>
+
 #include "engine/Engine.h"
 #include "engine/ECS.h"
 
 int main()
 {
-    //test_ecs();
+    std::cout << "START" << std::endl;
+    std::cout.flush();
+
+    std::cout << "Working Directory: " 
+        << std::filesystem::current_path() << std::endl;
+    std::cout.flush();
 
     Engine engine;
 
