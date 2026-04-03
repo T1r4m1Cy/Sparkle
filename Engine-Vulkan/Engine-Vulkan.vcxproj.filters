@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2015-2019 LunarG, Inc. -->
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\engine">
+      <UniqueIdentifier>{b0bb6e1d-6724-4ac2-aade-93607dd6494e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libraries">
+      <UniqueIdentifier>{e6da1f07-a885-4742-ab3b-64377448d401}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libraries\imgui">
+      <UniqueIdentifier>{9ceb73f7-b272-4990-9a02-3817b39d7211}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\VulkanUtils.cpp">
+      <Filter>Source Files\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\Window.cpp">
+      <Filter>Source Files\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\CameraSystem.cpp">
+      <Filter>Source Files\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\ECS.cpp">
+      <Filter>Source Files\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\Engine.cpp">
+      <Filter>Source Files\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\ImGuiLayer.cpp">
+      <Filter>Source Files\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\Renderer.cpp">
+      <Filter>Source Files\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\VulkanContext.cpp">
+      <Filter>Source Files\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\VulkanPipeline.cpp">
+      <Filter>Source Files\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\VulkanResources.cpp">
+      <Filter>Source Files\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\VulkanSwapchain.cpp">
+      <Filter>Source Files\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\libraries\imgui\imgui_draw.cpp">
+      <Filter>Source Files\libraries\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\libraries\imgui\imgui_tables.cpp">
+      <Filter>Source Files\libraries\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\libraries\imgui\imgui_widgets.cpp">
+      <Filter>Source Files\libraries\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\libraries\imgui\imgui.cpp">
+      <Filter>Source Files\libraries\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\libraries\imgui\imgui_impl_sdl2.cpp">
+      <Filter>Source Files\libraries\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\libraries\imgui\imgui_impl_vulkan.cpp">
+      <Filter>Source Files\libraries\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\ComponentRegistry.cpp">
+      <Filter>Source Files\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\ComponentRegistrations.cpp">
+      <Filter>Source Files\engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\AssetManager.cpp">
+      <Filter>Source Files\engine</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\engine\libraries\stb_image.h">
+      <Filter>Source Files\libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\libraries\tiny_obj_loader.h">
+      <Filter>Source Files\libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\libraries\imgui\imgui_internal.h">
+      <Filter>Source Files\libraries\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\libraries\imgui\imstb_rectpack.h">
+      <Filter>Source Files\libraries\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\libraries\imgui\imstb_textedit.h">
+      <Filter>Source Files\libraries\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\libraries\imgui\imstb_truetype.h">
+      <Filter>Source Files\libraries\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\libraries\imgui\imconfig.h">
+      <Filter>Source Files\libraries\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\libraries\imgui\imgui.h">
+      <Filter>Source Files\libraries\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\libraries\imgui\imgui_impl_sdl2.h">
+      <Filter>Source Files\libraries\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\libraries\imgui\imgui_impl_vulkan.h">
+      <Filter>Source Files\libraries\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\ComponentRegistry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\PropertyDrawers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\CameraSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Components.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\ECS.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Engine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Renderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\RendererData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\VulkanContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\VulkanPipeline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\VulkanResources.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\VulkanSwapchain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\VulkanUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\Window.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\ImGuiLayer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\AssetHandle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\AssetManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
