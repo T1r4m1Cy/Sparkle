@@ -4,6 +4,7 @@
 
 #include "Window.h"
 #include "VulkanContext.h"
+#include "IWindowProvider.h"
 #include "ECS.h"
 #include "AssetManager.h"
 
@@ -16,12 +17,7 @@ struct Engine {
 	float deltaTime = 0.0f;
 	std::chrono::steady_clock::time_point lastFrameTime;
 
-	std::vector<const char*> requiredExtensions;
-	std::function<vk::SurfaceKHR(vk::Instance)> createSurface;
-	std::function<vk::Extent2D()> getWindowSize;
-
-	std::function<vk::Framebuffer(uint32_t imageIndex, uint32_t frame)> 
-		getFramebuffer;
+	IWindowProvider* windowProvider = nullptr;
 };
 
 int engine_init(Engine& e, int width, int height);

@@ -21,11 +21,9 @@
 
 #include "VulkanContext.h"
 
-static int vulkan_init_instance(VulkanContext& ctx, 
-    const std::function<vk::Extent2D()>& getWindowSize,
-    std::vector<const char*> requiredExtensions);
+static int vulkan_init_instance(VulkanContext& ctx, std::vector<const char*> requiredExtensions);
 
-static int vulkan_init_surface(VulkanContext& ctx, 
+static int vulkan_init_surface(VulkanContext& ctx,
     const std::function<vk::SurfaceKHR(vk::Instance)>& createSurface);
 
 static int vulkan_init_physical_device(VulkanContext& ctx);
@@ -78,17 +76,15 @@ void record_command_buffer(VulkanContext& ctx, AssetManager& assets,
 
 
 
-int vulkan_init(VulkanContext& ctx, 
-    std::vector<const char*> requiredExtensions,
-    const std::function<vk::SurfaceKHR(vk::Instance)>& createSurface,
-    const std::function<vk::Extent2D()>& getWindowSize)
+int vulkan_init(VulkanContext& ctx, IWindowProvider& provider)
 {
-    if (vulkan_init_instance(ctx, getWindowSize, requiredExtensions) != 0) return 1;
-    if (vulkan_init_surface(ctx, createSurface) != 0) return 1;
+    vk::Extent2D windowSize = provider.get_window_size();
+    if (vulkan_init_instance(ctx, provider.get_required_extensions()) != 0) return 1;
+    if (vulkan_init_surface(ctx, [&](vk::Instance inst) { return provider.create_surface(inst); }) != 0) return 1;
     if (vulkan_init_physical_device(ctx) != 0) return 1;
     if (vulkan_init_device(ctx) != 0) return 1;
 	if (vulkan_init_offscreen_sampler(ctx) != 0) return 1;
-    if (vulkan_init_swapchain(ctx, getWindowSize) != 0) return 1;
+    if (vulkan_init_swapchain(ctx, windowSize) != 0) return 1;
     if (vulkan_init_image_views(ctx) != 0) return 1;
     if (vulkan_init_render_pass(ctx) != 0) return 1;
     if (vulkan_init_descriptor_set_layout(ctx) != 0) return 1;
@@ -118,9 +114,7 @@ int vulkan_init(VulkanContext& ctx,
     return 0;
 }
 
-static int vulkan_init_instance(VulkanContext& ctx, 
-    const std::function<vk::Extent2D()>& getWindowSize,
-    std::vector<const char*> requiredExtensions)
+static int vulkan_init_instance(VulkanContext& ctx, std::vector<const char*> requiredExtensions)
 {
     unsigned extension_count = requiredExtensions.size();
     std::vector<const char*> extensions = requiredExtensions;
@@ -714,9 +708,8 @@ void update_light_buffer(VulkanContext& ctx, uint32_t currentImage, LightUBO ubo
     memcpy(ctx.lightBuffersMapped[currentImage], &ubo, sizeof(ubo));
 }
 
-void draw_frame(VulkanContext& ctx, AssetManager& assets, 
-    const std::function<vk::Extent2D()>& getWindowSize, FramePacket framePacket,
-    std::function<vk::Framebuffer(uint32_t imageIndex, uint32_t frame)> getFramebuffer)
+void draw_frame(VulkanContext& ctx, AssetManager& assets,
+    IWindowProvider& provider, FramePacket framePacket)
 {
     uint32_t frame = ctx.currentFrame;
     uint32_t semIdx = ctx.acquireSemaphoreIndex;
@@ -737,7 +730,7 @@ void draw_frame(VulkanContext& ctx, AssetManager& assets,
         &imageIndex);
 
     if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR) {
-        vulkan_recreate_swapchain(ctx, getWindowSize);
+        vulkan_recreate_swapchain(ctx, provider.get_window_size());
         return;
     }
     else if (result != vk::Result::eSuccess) {
@@ -752,7 +745,7 @@ void draw_frame(VulkanContext& ctx, AssetManager& assets,
 
     update_uniform_buffer(ctx, frame, framePacket.ubo);
 
-    vk::Framebuffer framebuffer = getFramebuffer(imageIndex, frame);
+    vk::Framebuffer framebuffer = provider.get_framebuffer(imageIndex, frame);
     record_command_buffer(ctx, assets, imageIndex, frame, 
         framePacket.drawCalls, framebuffer);
 

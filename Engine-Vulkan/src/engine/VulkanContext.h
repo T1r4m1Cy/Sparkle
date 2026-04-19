@@ -17,6 +17,7 @@
 #include "VulkanSwapchain.h"
 #include "VulkanPipeline.h"
 #include "VulkanResources.h"
+#include "IWindowProvider.h"
 
 struct SDL_Window;
 
@@ -64,10 +65,7 @@ struct VulkanContext {
 	vk::Sampler offscreenSampler;
 };
 
-int vulkan_init(VulkanContext& ctx, 
-    std::vector<const char*> requiredExtensions,
-    const std::function<vk::SurfaceKHR(vk::Instance)>& createSurface,
-    const std::function<vk::Extent2D()>& getWindowSize);
+int vulkan_init(VulkanContext& ctx, IWindowProvider& provider);
 void vulkan_shutdown(VulkanContext& ctx);
 
 int vulkan_recreate_g_buffer(VulkanContext& ctx);
@@ -77,6 +75,5 @@ int vulkan_update_lighting_descriptor_sets(VulkanContext& ctx);
 
 struct AssetManager;
 
-void draw_frame(VulkanContext& ctx, AssetManager& assets, 
-    const std::function<vk::Extent2D()>& getWindowSize, FramePacket framePacket,
-    std::function<vk::Framebuffer(uint32_t imageIndex, uint32_t frame)> getFramebuffer);
+void draw_frame(VulkanContext& ctx, AssetManager& assets,
+    IWindowProvider& provider, FramePacket framePacket);

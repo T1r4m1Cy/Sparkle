@@ -32,13 +32,45 @@ Create and destroy a Vulkan surface on an SDL window.
 
 #include "engine/Engine.h"
 #include "engine/ECS.h"
+#include "engine/IWindowProvider.h"
+
+struct SDLWindowProvider : IWindowProvider {
+    SDL_Window* window;
+    VulkanContext* vulkan = nullptr;
+
+    explicit SDLWindowProvider(SDL_Window* win) : window(win) {}
+
+    std::vector<const char*> get_required_extensions() override {
+        unsigned count;
+        SDL_Vulkan_GetInstanceExtensions(window, &count, nullptr);
+        std::vector<const char*> extensions(count);
+        SDL_Vulkan_GetInstanceExtensions(window, &count, extensions.data());
+        return extensions;
+    }
+
+    vk::SurfaceKHR create_surface(vk::Instance instance) override {
+        VkSurfaceKHR surface;
+        SDL_Vulkan_CreateSurface(window, static_cast<VkInstance>(instance), &surface);
+        return vk::SurfaceKHR(surface);
+    }
+
+    vk::Extent2D get_window_size() override {
+        int w, h;
+        SDL_Vulkan_GetDrawableSize(window, &w, &h);
+        return { static_cast<uint32_t>(w), static_cast<uint32_t>(h) };
+    }
+
+    vk::Framebuffer get_framebuffer(uint32_t imageIndex, uint32_t /*frame*/) override {
+        return vulkan->swapchain.swapchainFramebuffers[imageIndex];
+    }
+};
 
 int main()
 {
     std::cout << "START" << std::endl;
     std::cout.flush();
 
-    std::cout << "Working Directory: " 
+    std::cout << "Working Directory: "
         << std::filesystem::current_path() << std::endl;
     std::cout.flush();
 
@@ -46,28 +78,9 @@ int main()
 
     window_init(engine.window, 1280, 720);
 
-    unsigned count;
-    SDL_Vulkan_GetInstanceExtensions(engine.window.handle, &count, nullptr);
-    engine.requiredExtensions.resize(count);
-    SDL_Vulkan_GetInstanceExtensions(engine.window.handle, &count, 
-        engine.requiredExtensions.data());
-
-    engine.createSurface = [&](vk::Instance instance) {
-        VkSurfaceKHR surface;
-        SDL_Vulkan_CreateSurface(engine.window.handle, 
-            static_cast<VkInstance>(instance), &surface);
-        return vk::SurfaceKHR(surface);
-    };
-
-    engine.getWindowSize = [&]() -> vk::Extent2D {
-        int w, h;
-        SDL_Vulkan_GetDrawableSize(engine.window.handle, &w, &h);
-        return { static_cast<uint32_t>(w), static_cast<uint32_t>(h) };
-    };
-
-    engine.getFramebuffer = [&](uint32_t imageIndex, uint32_t frame) {
-        return engine.vulkan.swapchain.swapchainFramebuffers[imageIndex];
-    };
+    SDLWindowProvider provider(engine.window.handle);
+    provider.vulkan = &engine.vulkan;
+    engine.windowProvider = &provider;
 
     if (engine_init(engine, 1280, 720) != 0) return 1;
 

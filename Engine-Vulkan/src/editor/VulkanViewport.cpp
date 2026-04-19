@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <QResizeEvent>
 
 #include "VulkanViewport.h"
 
@@ -13,4 +14,10 @@ VulkanViewport::VulkanViewport(QWidget* parent)
 HWND VulkanViewport::get_hwnd() const
 {
     return reinterpret_cast<HWND>(winId());
+}
+
+void VulkanViewport::resizeEvent(QResizeEvent* event)
+{
+    QWidget::resizeEvent(event);
+    emit viewport_resized(event->size().width(), event->size().height());
 }

@@ -5,8 +5,7 @@
 
 #include "VulkanSwapchain.h"
 
-int vulkan_init_swapchain(VulkanContext& ctx, 
-    const std::function<vk::Extent2D()>& getWindowSize)
+int vulkan_init_swapchain(VulkanContext& ctx, vk::Extent2D windowSize)
 {
     SwapChainSupportDetails support = query_swap_chain_support(ctx.physicalDevice, ctx.surface);
 
@@ -30,7 +29,7 @@ int vulkan_init_swapchain(VulkanContext& ctx,
     }
 
     //Window size
-    vk::Extent2D extent = getWindowSize();
+    vk::Extent2D extent = windowSize;
     if (support.capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
         extent = support.capabilities.currentExtent;
     }
@@ -206,14 +205,13 @@ int vulkan_cleanup_swapchain(VulkanContext& ctx)
     return 0;
 }
 
-int vulkan_recreate_swapchain(VulkanContext& ctx, 
-    const std::function<vk::Extent2D()>& getWindowSize) 
+int vulkan_recreate_swapchain(VulkanContext& ctx, vk::Extent2D windowSize)
 {
     ctx.device.waitIdle();
 
     vulkan_cleanup_swapchain(ctx);
 
-    if (vulkan_init_swapchain(ctx, getWindowSize) != 0) return 1;
+    if (vulkan_init_swapchain(ctx, windowSize) != 0) return 1;
     if (vulkan_init_image_views(ctx) != 0) return 1;
 	if (vulkan_init_depth_resources(ctx) != 0) return 1;
     if (vulkan_recreate_g_buffer(ctx) != 0) return 1;

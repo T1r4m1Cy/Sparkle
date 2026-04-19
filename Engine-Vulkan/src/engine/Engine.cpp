@@ -11,8 +11,7 @@ static constexpr float CAMERA_SPEED = 3.0f;
 
 int engine_init(Engine& e, int width, int height)
 {
-    if (vulkan_init(e.vulkan, 
-        e.requiredExtensions, e.createSurface, e.getWindowSize) != 0) return 1;
+    if (vulkan_init(e.vulkan, *e.windowProvider) != 0) return 1;
 
     e.world = world_create();
 
@@ -26,7 +25,7 @@ int engine_init(Engine& e, int width, int height)
 
     Entity e0 = world_create_entity(e.world);
 
-    NameComponent n0 = { "Camera" };
+    EntityMetaComponent n0 = { "Camera" };
 
     TransformComponent t0 = {
         {3.0f, 3.0f, 2.0f},
@@ -55,7 +54,7 @@ int engine_init(Engine& e, int width, int height)
     Entity e3 = world_create_entity(e.world);
     Entity e4 = world_create_entity(e.world);
 
-    NameComponent n3 = { "Point Light 1" };
+    EntityMetaComponent n3 = { "Point Light 1" };
 
     TransformComponent t3 = {
         {0.0f, 4.0f, 0.0f},
@@ -64,7 +63,7 @@ int engine_init(Engine& e, int width, int height)
     };
     PointLightComponent pl3 = { {1.0f, 1.0f, 1.0f}, 0.8f };
 
-    NameComponent n4 = { "Point Light 2" };
+    EntityMetaComponent n4 = { "Point Light 2" };
 
     TransformComponent t4 = {
         {4.0f, 0.0f, 0.0f},
@@ -81,7 +80,7 @@ int engine_init(Engine& e, int width, int height)
     world_add_component(e.world, e4, n4);
     world_add_component(e.world, e4, pl4);
 
-    NameComponent n1 = { "Viking Room" };
+    EntityMetaComponent n1 = { "Viking Room" };
 
     TransformComponent t1 = { 
         {0.0f, 0.0f, 0.0f}, 
@@ -90,7 +89,7 @@ int engine_init(Engine& e, int width, int height)
     };
     MeshComponent m1 = { mesh1, texture1 };
 
-    NameComponent n2 = { "Bulbasaur" };
+    EntityMetaComponent n2 = { "Bulbasaur" };
 
     TransformComponent t2 = {
         {0.0f, 0.0f, 0.0f},
@@ -132,9 +131,8 @@ void engine_render(Engine& e)
         (float)e.vulkan.swapchain.swapchainExtent.height;
 
     draw_frame(
-        e.vulkan, e.assets, e.getWindowSize, 
-        update_renderer(e.world, e.assets, aspectRatio), 
-        e.getFramebuffer
+        e.vulkan, e.assets, *e.windowProvider,
+        update_renderer(e.world, e.assets, aspectRatio)
     );
 }
 

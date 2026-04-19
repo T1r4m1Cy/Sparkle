@@ -3,10 +3,6 @@ project(Sparkle)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTORCC ON)
-
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -14,12 +10,17 @@ set(VULKAN_SDK "C:/Programming/Vulkan")
 set(CMAKE_PREFIX_PATH "C:/Programming/Qt/6.11.0/msvc2022_64")
 
 find_package(Vulkan REQUIRED)
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui Network)
 
 # ─── Исходники движка ──────────────────────────────────────────────
 file(GLOB ENGINE_SOURCES
     src/engine/*.cpp
     src/engine/*.h
+)
+
+file (GLOB RUNTIME_SOURCES
+    src/runtime/*.cpp
+    src/runtime/*.h
 )
 
 file(GLOB EDITOR_SOURCES
@@ -60,6 +61,31 @@ add_custom_command(TARGET Sparkle POST_BUILD
         $<TARGET_FILE_DIR:Sparkle>
 )
 
+# ─── Runtime ───────────────────────────────────────────────────────
+add_executable(SparkleRuntime
+    ${RUNTIME_SOURCES}
+)
+
+set_target_properties(SparkleRuntime PROPERTIES AUTOMOC ON)
+
+target_include_directories(SparkleRuntime PRIVATE
+    src/runtime
+    src/engine
+)
+
+target_link_libraries(SparkleRuntime PRIVATE
+    EngineLib
+    Qt6::Core
+    Qt6::Network
+)
+
+add_dependencies(SparkleRuntime Shaders)
+
+add_custom_command(TARGET SparkleRuntime POST_BUILD
+    COMMAND "C:/Programming/Qt/6.11.0/msvc2022_64/bin/windeployqt.exe"
+        $<TARGET_FILE:SparkleRuntime>
+)
+
 # ─── Editor ────────────────────────────────────────────────────────
 add_executable(SparkleEditor
     ${EDITOR_SOURCES}
@@ -67,15 +93,17 @@ add_executable(SparkleEditor
 
 target_include_directories(SparkleEditor PRIVATE
     src/editor
+    src/runtime   # for IPCProtocol.h
 )
 
 target_link_libraries(SparkleEditor PRIVATE
-    EngineLib
     Qt6::Core
     Qt6::Widgets
     Qt6::Gui
-    Vulkan::Vulkan
+    Qt6::Network
 )
+
+set_target_properties(SparkleEditor PROPERTIES AUTOMOC ON AUTOUIC ON AUTORCC ON)
 
 # ─── Шейдеры ───────────────────────────────────────────────────────
 find_program(GLSLC glslc HINTS "${VULKAN_SDK}/Bin")

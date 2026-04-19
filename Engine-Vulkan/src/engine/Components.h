@@ -1,16 +1,18 @@
 #pragma once
 
+#include <cstdint>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include <string>
 
 #include "AssetHandle.h"
 
 struct GpuMesh;
 struct GpuTexture;
 
-struct NameComponent {
-	std::string name = "Entity";
+struct EntityMetaComponent {
+    char     name[64] = "Entity";
+    bool     active   = true;
+    uint32_t parentId = UINT32_MAX;
 };
 
 struct TransformComponent {
